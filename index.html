@@ -71,7 +71,9 @@ textarea{width:100%;box-sizing:border-box;min-height:140px;font-family:var(--mon
   const fmt = ms => ms == null ? '—' : (ms < 1000 ? Math.round(ms) + ' ms' : (ms / 1000).toFixed(2) + ' s');
   const kb = b => b == null ? '' : (b < 1024 ? b + ' B' : (b / 1024).toFixed(1) + ' KB');
   const cls = (ms, ok) => !ok ? 'bad' : ms < 500 ? 'ok' : ms < 2000 ? 'slow' : 'bad';
-  const bust = u => u + (u.includes('?') ? '&' : '?') + 't=' + Date.now() + Math.random().toString(36).slice(2, 6);
+  // GitHub's CDN can hand back a cached copy, so bust it; Supabase must NOT get a stray
+  // query param — PostgREST reads any unknown param as a column filter and answers 400
+  const bust = u => /supabase\.co/.test(u) ? u : u + (u.includes('?') ? '&' : '?') + 't=' + Date.now() + Math.random().toString(36).slice(2, 6);
 
   // one download, timed from asking to having every byte
   async function timed(url, headers) {
